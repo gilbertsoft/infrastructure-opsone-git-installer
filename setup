@@ -21,9 +21,6 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# Activate debugging if $DEBUG is set to 1
-[ -z "$DEBUG" ] & [ "${DEBUG}" == 1 ] && set -o xtrace
-
 # Get the directory containing this script
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
