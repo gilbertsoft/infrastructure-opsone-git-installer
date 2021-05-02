@@ -45,16 +45,16 @@ load_config () {
 }
 
 check_config () {
-    if [ -n "$GIS_REPOSITORY" ]; then
+    if [ -z "$GIS_REPOSITORY" ]; then
         echo "Variable GIS_REPOSITORY is not set, aborting the installer. Please set it to the desired repository url before running the installer."
         exit 1
     fi    
 
-    if [ -n "$GIS_BRANCH" ]; then
+    if [ -z "$GIS_BRANCH" ]; then
         GIS_BRANCH="main"
     fi    
 
-    if [ -n "$GIS_SETUP" ]; then
+    if [ -z "$GIS_SETUP" ]; then
         GIS_SETUP="setup"
     fi    
 }
