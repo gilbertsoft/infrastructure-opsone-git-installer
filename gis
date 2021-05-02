@@ -35,6 +35,10 @@ check_config () {
     if [ -n "$GIS_BRANCH" ]; then
         GIS_BRANCH="main"
     fi    
+
+    if [ -n "$GIS_SETUP" ]; then
+        GIS_SETUP="setup"
+    fi    
 }
 
 clone_repository() {
@@ -67,8 +71,8 @@ clone_repository() {
 
 post_setup () {
     # Run setup script
-    if [ -f "setup" ]; then
-        . ./setup
+    if [ -f "${GIS_SETUP}" ]; then
+        . ./${GIS_SETUP}
     fi
 }
 

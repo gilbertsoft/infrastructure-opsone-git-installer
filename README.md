@@ -47,14 +47,19 @@ not forget to relogin to the server afterwards.
 
 Defines the repository to be cloned e.g. `https://github.com/gilbertsoft/infrastructure-opsone-erpnext.git`.
 
-#### GIS_BRANCH (default main)
+#### GIS_BRANCH
 
 Defines the branch of the repository to be cloned. Defaults to `main`.
 
-#### GIS_DESTINATION (default empty)
+#### GIS_DESTINATION
 
 Defines the destination directory to be used. If not set the repository gets
 cloned to the user home.
+
+#### GIS_SETUP
+
+Defines the setup script to be called after the cloning if found. Defaults to
+`setup`.
 
 ### Run the Installer
 
