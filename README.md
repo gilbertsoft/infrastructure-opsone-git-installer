@@ -44,6 +44,26 @@ configuration:
 Alternatively you can add the environment variables via `~/cnf/environment`. Do
 not forget to relogin to the server afterwards.
 
+The third option is to provide various `.env` files which will be loaded
+automatically. Several `.env` files are available to set environment variables
+in just the right situation:
+
+* `.env`: defines the default values of the env vars.
+* `.env.local`: overrides the default values for all contexts but only on the
+  machine which contains the file. This file should not be committed to the
+  repository.
+* `.env.<context>` (e.g. `.env.STAGE`): overrides env vars only for one
+  contexts but for all machines (these files are committed).
+* `.env.<context>.local` (e.g. `.env.STAGE.local`): defines machine-specific
+  env var overrides only for one contexts. It’s similar to `.env.local`, but
+  the overrides only apply to one contexts.
+
+Valid contexts are:
+
+* `PROD`
+* `STAGE`
+* `DEV`
+
 #### GIS_REPOSITORY (mandatory)
 
 Defines the repository to be cloned e.g. `https://github.com/gilbertsoft/infrastructure-opsone-erpnext.git`.

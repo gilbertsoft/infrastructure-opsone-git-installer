@@ -26,6 +26,24 @@ IFS=$'\n\t'
 
 
 # Functions
+load_config () {
+    if [ -f ".env" ]; then
+        source .env
+    fi
+
+    if [ -f ".env.local" ]; then
+        source .env.local
+    fi
+
+    if [ -f ".env.${WEBSITE_CONTEXT}" ]; then
+        source .env.${WEBSITE_CONTEXT}
+    fi
+
+    if [ -f ".env.${WEBSITE_CONTEXT}.local" ]; then
+        source .env.${WEBSITE_CONTEXT}.local
+    fi
+}
+
 check_config () {
     if [ -n "$GIS_REPOSITORY" ]; then
         echo "Variable GIS_REPOSITORY is not set, aborting the installer. Please set it to the desired repository url before running the installer."
@@ -78,6 +96,7 @@ post_setup () {
 
 
 # Main
+load_config
 check_config
 
 # Change directory to destination
