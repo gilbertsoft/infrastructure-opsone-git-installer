@@ -18,8 +18,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Force some bash options see https://gist.github.com/mohanpedala/1e2ff5661761d3abd0385e8223e16425
-set -euo pipefail
+set -eo pipefail
 IFS=$'\n\t'
+
+# Activate debugging if $DEBUG is set to 1
+[ -z "$DEBUG" ] & [ "${DEBUG}" == 1 ] && set -o xtrace
 
 # Get the directory containing this script
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
