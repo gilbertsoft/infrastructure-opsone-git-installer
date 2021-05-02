@@ -35,7 +35,8 @@ configuration:
     "envvar": {
       "GIS_REPOSITORY": "https://github.com/gilbertsoft/infrastructure-opsone-erpnext.git",
       "GIS_BRANCH": "main",
-      "GIS_DESTINATION": ""
+      "GIS_DESTINATION": "",
+      "GIS_SETUP": "setup"
     }
   }
   ```
