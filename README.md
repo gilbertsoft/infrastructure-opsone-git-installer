@@ -45,7 +45,7 @@ not forget to relogin to the server afterwards.
 
 #### GIS_REPOSITORY (mandatory)
 
-Defines the repository to be cloned e.g. <https://github.com/gilbertsoft/infrastructure-opsone-erpnext.git>.
+Defines the repository to be cloned e.g. `https://github.com/gilbertsoft/infrastructure-opsone-erpnext.git`.
 
 #### GIS_BRANCH (default main)
 
