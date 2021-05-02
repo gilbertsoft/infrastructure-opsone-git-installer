@@ -15,7 +15,7 @@ adding this `Custom JSON`:
     "git-installer": {
       "source": "https://github.com/gilbertsoft/infrastructure-opsone-git-installer.git",
       "revision": "main",
-      "exec_after": "./setup"
+      "exec_after": "sudo ./setup"
     }
   }
 }
