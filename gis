@@ -168,7 +168,7 @@ setup_update () {
     if [ ! -f ".gisupdate" ] & [ "$no_updates" == 0 ]; then
         echo "Setting up update job..."
 
-        (crontab -l && echo "\t0\t1\t*\t*\t*\tgis update -d $working_dir >/dev/null") | crontab -
+        (crontab -l && echo -e "\t0\t1\t*\t*\t*\tgis update -d ~/$working_dir >/dev/null") | crontab -
         touch .gisupdate
     fi
 }
