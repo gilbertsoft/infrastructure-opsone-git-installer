@@ -165,7 +165,12 @@ update_repository () {
 
 # Register cron job for updates
 setup_update () {
-    if [ ! -f ".gisupdate" ] & [ "$no_updates" == 0 ]; then
+    if [ "$no_updates" == 1 ]; then
+        echo "Not setting up update job"
+        return
+    fi
+
+    if [ ! -f ".gisupdate" ]; then
         echo "Setting up update job..."
 
         (crontab -l && echo -e "\t0\t1\t*\t*\t*\tgis update -d ~/$working_dir >/dev/null") | crontab -
