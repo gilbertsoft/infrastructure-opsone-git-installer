@@ -18,14 +18,65 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Force some bash options see https://gist.github.com/mohanpedala/1e2ff5661761d3abd0385e8223e16425
-set -eo pipefail
+set -euo pipefail
 IFS=$'\n\t'
 
 # Activate debugging if $DEBUG is set to 1
+DEBUG=${DEBUG:-}
 [ -z "$DEBUG" ] & [ "${DEBUG}" == 1 ] && set -o xtrace
 
 
 # Functions
+show_header () {
+    read -r -d '\0' header_message << EOM
+GIT Installer Script  Copyright (C) 2021  Gilbertsoft LLC Switzerland
+
+This program comes with ABSOLUTELY NO WARRANTY; for details type 'license'.
+This is free software, and you are welcome to redistribute it
+under certain conditions; type 'license' for details.
+\0
+EOM
+
+    echo "$header_message"
+    echo
+}
+
+show_help () {
+    # Load help text into $HELP
+    #read -d '' HELP <<EOF
+    read -r -d '\0' help_message << EOM
+Usage:
+  $0 command [options] [arguments]
+
+Options:
+  -h, --help                Display this help message
+      --license             Display the license
+  -f, --force               Force the processing of the command
+  -d, --working-dir <DIR>   If specified, use the given directory as working directory
+
+Available commands:
+  install   Clone and setup the configured repository
+  update    Update the current repository
+
+Examples:
+  # Clone and setup the configured repository
+  gis
+  gis install
+
+  # Update the respository
+  gis update
+\0
+EOM
+
+    echo "${help_message}"
+}
+
+show_license () {
+    # Get the directory containing this script
+    __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    cat $__dir/LICENSE
+}
+
 load_config () {
     if [ -f ".env" ]; then
         source .env
@@ -45,25 +96,33 @@ load_config () {
 }
 
 check_config () {
+    GIS_REPOSITORY=${GIS_REPOSITORY:-}
+    GIS_BRANCH=${GIS_BRANCH:-main}
+    GIS_DESTINATION=${GIS_DESTINATION:-}
+    GIS_SETUP=${GIS_SETUP:-setup}
+    GIS_SETUP_OPTIONS=${GIS_SETUP_OPTIONS:-}
+
     if [ -z "$GIS_REPOSITORY" ]; then
         echo "Variable GIS_REPOSITORY is not set, aborting the installer. Please set it to the desired repository url before running the installer."
         exit 1
     fi    
+}
 
-    if [ -z "$GIS_BRANCH" ]; then
-        GIS_BRANCH="main"
-    fi    
-
-    if [ -z "$GIS_SETUP" ]; then
-        GIS_SETUP="setup"
-    fi    
+# Change directory to the working directory
+prepare_working_dir () {
+    mkdir --parents ~/$working_dir
+    cd ~/$working_dir
 }
 
 clone_repository() {
     # Check for an existing git repository
+    if [ -d ".git" ] & [ "$force" == 1 ]; then
+        rm -fr .git
+    fi
+
     if [ -d ".git" ]; then
         echo "*****************************************************************************"
-        echo "* A git repository does already exist, the installer will use the current   *"
+        echo "* A git repository already exists, the installer will use the current       *"
         echo "* branch to continue the setup process.                                     *"
         echo "*                                                                           *"
         echo "* If you like to do a fresh installation, run the following command:        *"
@@ -71,40 +130,161 @@ clone_repository() {
         echo "*  'rm -fr .git && ./installer'                                             *"
         echo "*                                                                           *"
         echo "*****************************************************************************"
-
-        # Reset hard and update
-        git reset -q --hard
-        git pull -q
+        echo
     else
-        # Clone the repository
-        git clone -q --depth=1 --branch=${GIS_BRANCH} ${GIS_REPOSITORY} tmp/git-installer
+        # Clone the repository to tmp/gis
+        git clone -q --depth=1 --branch=${GIS_BRANCH} ${GIS_REPOSITORY} tmp/gis
 
-        # Move .git to current directory
-        mv tmp/git-installer/.git .git
+        # Move .git to current directory and remove tmp/gis
+        mv tmp/gis/.git .git
+        rm -fr tmp/gis
+    fi
 
-        # Delete tmp/git-installer
-        rm -fr tmp/git-installer
+    # Reset hard and update
+    update_repository
+}
 
-        # Reset hard and update
-        git reset -q --hard
-        git pull -q
+update_repository () {
+    git reset -q --hard
+    git pull -q
+}
+
+# Register cron job for updates
+setup_update () {
+    if [ ! -f ".gisupdate" ] & [ "$no_updates" == 0 ]; then
+        (crontab -l && echo "\t0\t1\t*\t*\t*\tgis update -d $working_dir >/dev/null") | crontab -
+        touch .gisupdate
     fi
 }
 
+# Run setup script
 post_setup () {
-    # Run setup script
     if [ -f "${GIS_SETUP}" ]; then
-        . ./${GIS_SETUP}
+        . ./${GIS_SETUP} ${GIS_SETUP_OPTIONS}
     fi
 }
 
 
 # Main
+show_header
 load_config
 check_config
 
-# Change directory to destination
-cd ~/$GIS_DESTINATION
+# Set defaults
+command=install
+help=0
+license=0
+working_dir=${GIS_DESTINATION}
+force=0
+no_updates=0
 
-clone_repository
-post_setup
+# Process arguments
+invalid_options=()
+invalid_command=""
+
+while :; do
+    case ${1:-} in
+        # End of all options
+        --) 
+            shift
+            break
+            ;;
+
+        # Special options
+        -h | -\? | --help | help)
+            help=1
+            ;;
+        --license | license)
+            license=1
+            ;;
+
+        # Options
+        -d | --working-dir)
+            shift
+            working_dir=$1
+            ;;
+        -f | --force)
+            force=1
+            ;;
+        --no-updates)
+            no_updates=1
+            ;;
+
+        # Unknown option
+        -?*)
+            invalid_options+=($1)
+            ;;
+
+        # Command
+        install | update)
+            command=$1
+            ;;
+
+        # Unknown command
+        ?*)
+            invalid_command=$1
+            break
+            ;;
+
+        # Default case: No more options, so break out of the loop
+        *)  
+            break
+    esac
+
+    shift
+done
+
+# Show help and exit on invalid options
+if [ ${#invalid_options[@]} -ne 0 ]; then
+    echo "Invalid option(s):" >&2
+    for I in "${invalid_options[@]}"; do
+        echo "  ${I}" >&2
+    done
+    echo
+
+    show_help
+    exit 1
+fi
+
+# Show help and exit on invalid command
+if [ -n ${invalid_command} ]; then
+    echo "Invalid command:" >&2
+    echo "  ${invalid_command}" >&2
+    echo
+
+    show_help
+    exit 1
+fi
+
+# Show help if requested and exit
+if [ "${help}" == 1 ]; then
+    show_help
+    exit 0
+fi
+
+# Show license if requested and exit
+if [ "${license}" == 1 ]; then
+    show_license
+    exit 0
+fi
+
+# Change directory to the working directory
+prepare_working_dir
+
+# Process command
+case ${command:-install} in
+    install)
+        clone_repository
+        setup_update
+        post_setup
+        ;;
+    update)
+        update_repository
+        post_setup
+        ;;
+    *)
+        # Should never get reached
+        printf 'WARNING: Unknown command: %s\n' "$command" >&2
+        exit 1
+        ;;
+esac

@@ -36,7 +36,8 @@ configuration:
       "GIS_REPOSITORY": "https://github.com/gilbertsoft/infrastructure-opsone-erpnext.git",
       "GIS_BRANCH": "main",
       "GIS_DESTINATION": "",
-      "GIS_SETUP": "setup"
+      "GIS_SETUP": "setup",
+      "GIS_SETUP_OPTIONS": ""
     }
   }
   ```
@@ -82,10 +83,16 @@ cloned to the user home.
 Defines the setup script to be called after the cloning if found. Defaults to
 `setup`.
 
+#### GIS_SETUP_OPTIONS
+
+Defines the options passed to the setup script. Defaults to none.
+
 ### Run the Installer
 
 After the configuration you can run `gis` via SSH to get the configured
 repository cloned and setted up.
+
+For more information about the possible options run `gis --help`.
 
 ## Contact & Communication
 
