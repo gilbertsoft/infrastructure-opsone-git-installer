@@ -193,9 +193,11 @@ while :; do
         # Special options
         -h | -\? | --help | help)
             help=1
+            break
             ;;
         --license | license)
             license=1
+            break
             ;;
 
         # Options
